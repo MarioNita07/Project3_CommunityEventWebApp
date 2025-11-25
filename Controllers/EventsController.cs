@@ -86,6 +86,59 @@ namespace CommunityEvents.Controllers
             return View(@event);
         }
 
+        //GET: Events/Edit/5
+        [Authorize(Roles = "Organizer,Admin")]
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var @event = _eventService.GetEventById(id.Value);
+            if (@event == null) return NotFound();
+
+            var user = await _userManager.GetUserAsync(User);
+            if (!User.IsInRole("Admin") && @event.OrganizerId != user.Id)
+            {
+                return Forbid(); // 403 Forbidden
+            }
+
+            return View(@event);
+        }
+
+        // POST: Events/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Organizer,Admin")]
+        public async Task<IActionResult> Edit(int id, [Bind("EventId,Title,Description,Location,CategoryName,Date,ParticipantLimit,OrganizerId")] Event @event)
+        {
+            if (id != @event.EventId) return NotFound();
+
+            var user = await _userManager.GetUserAsync(User);
+            if (!User.IsInRole("Admin") && @event.OrganizerId != user.Id)
+            {
+                return Forbid();
+            }
+
+            ModelState.Remove("Organizer");
+            ModelState.Remove("Reviews");
+            ModelState.Remove("Registrations");
+            ModelState.Remove("Notifications");
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _eventService.UpdateEvent(@event);
+                }
+                catch (Exception)
+                {
+                    if (_eventService.GetEventById(id) == null) return NotFound();
+                    else throw;
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            return View(@event);
+        }
+
         // POST: Events/Join/5
         // Action to handle registrations
         [HttpPost]

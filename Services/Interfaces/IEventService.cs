@@ -9,6 +9,7 @@ namespace CommunityEvents.Services.Interfaces
             Event? GetEventById(int id);
             void CreateEvent(Event eventModel);
             void DeleteEvent(int id);
+            void UpdateEvent(Event eventModel);
             string? RegisterUserForEvent(int eventId, string userId);
     }
 }

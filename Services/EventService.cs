@@ -45,6 +45,12 @@ namespace CommunityEvents.Services
             }
         }
 
+        public void UpdateEvent(Event eventModel)
+        {
+            _repositoryWrapper.EventRepository.Update(eventModel);
+            _repositoryWrapper.Save();
+        }
+
         // Returns string? as an error message. If null, it succeeded.
         public string? RegisterUserForEvent(int eventId, string userId)
         {
