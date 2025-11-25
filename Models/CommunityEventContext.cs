@@ -1,8 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace CommunityEvents.Models
 {
-    public class CommunityEventContext : DbContext
+    public class CommunityEventContext : IdentityDbContext<IdentityUser>
     {
         public CommunityEventContext(DbContextOptions<CommunityEventContext> options)
             : base(options)
