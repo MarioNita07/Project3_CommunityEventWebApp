@@ -4,6 +4,7 @@ using CommunityEvents.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CommunityEvents.Migrations
 {
     [DbContext(typeof(CommunityEventContext))]
-    partial class CommunityEventContextModelSnapshot : ModelSnapshot
+    [Migration("20251125185820_AddNotificationModel")]
+    partial class AddNotificationModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,6 +25,27 @@ namespace CommunityEvents.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("CommunityEvents.Models.Category", b =>
+                {
+                    b.Property<int>("CategoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CategoryId"));
+
+                    b.Property<int>("EventId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("CategoryId");
+
+                    b.HasIndex("EventId");
+
+                    b.ToTable("Categories");
+                });
+
             modelBuilder.Entity("CommunityEvents.Models.Event", b =>
                 {
                     b.Property<int>("EventId")
@@ -29,9 +53,6 @@ namespace CommunityEvents.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EventId"));
-
-                    b.Property<string>("CategoryName")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
@@ -64,18 +85,18 @@ namespace CommunityEvents.Migrations
                     b.Property<DateOnly>("DateCreated")
                         .HasColumnType("date");
 
+                    b.Property<int>("EventId")
+                        .HasColumnType("int");
+
                     b.Property<bool?>("IsRead")
                         .HasColumnType("bit");
 
                     b.Property<string>("Message")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("RelatedEventId")
-                        .HasColumnType("int");
-
                     b.HasKey("NotificationId");
 
-                    b.HasIndex("RelatedEventId");
+                    b.HasIndex("EventId");
 
                     b.ToTable("Notifications");
                 });
@@ -128,13 +149,26 @@ namespace CommunityEvents.Migrations
                     b.ToTable("Reviews");
                 });
 
+            modelBuilder.Entity("CommunityEvents.Models.Category", b =>
+                {
+                    b.HasOne("CommunityEvents.Models.Event", "Event")
+                        .WithMany("Categories")
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+                });
+
             modelBuilder.Entity("CommunityEvents.Models.Notification", b =>
                 {
-                    b.HasOne("CommunityEvents.Models.Event", "RelatedEvent")
+                    b.HasOne("CommunityEvents.Models.Event", "Event")
                         .WithMany("Notifications")
-                        .HasForeignKey("RelatedEventId");
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("RelatedEvent");
+                    b.Navigation("Event");
                 });
 
             modelBuilder.Entity("CommunityEvents.Models.Registration", b =>
@@ -161,6 +195,8 @@ namespace CommunityEvents.Migrations
 
             modelBuilder.Entity("CommunityEvents.Models.Event", b =>
                 {
+                    b.Navigation("Categories");
+
                     b.Navigation("Notifications");
 
                     b.Navigation("Registrations");

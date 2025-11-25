@@ -22,13 +22,13 @@
                 @Html.DisplayNameFor(model => model.Location)
             </th>
             <th>
+                @Html.DisplayNameFor(model => model.CategoryName)
+            </th>
+            <th>
                 @Html.DisplayNameFor(model => model.Date)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.ParticipantLimit)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Category)
             </th>
             <th></th>
         </tr>
@@ -46,13 +46,13 @@
                 @Html.DisplayFor(modelItem => item.Location)
             </td>
             <td>
+                @Html.DisplayFor(modelItem => item.CategoryName)
+            </td>
+            <td>
                 @Html.DisplayFor(modelItem => item.Date)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.ParticipantLimit)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Category.CategoryId)
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.EventId">Edit</a> |

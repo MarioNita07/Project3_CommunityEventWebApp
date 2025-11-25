@@ -21,8 +21,7 @@ namespace CommunityEvents.Controllers
         // GET: Events
         public async Task<IActionResult> Index()
         {
-            var communityEventContext = _context.Events.Include(e => e.Category);
-            return View(await communityEventContext.ToListAsync());
+            return View(await _context.Events.ToListAsync());
         }
 
         // GET: Events/Details/5
@@ -34,7 +33,6 @@ namespace CommunityEvents.Controllers
             }
 
             var @event = await _context.Events
-                .Include(e => e.Category)
                 .FirstOrDefaultAsync(m => m.EventId == id);
             if (@event == null)
             {
@@ -47,7 +45,6 @@ namespace CommunityEvents.Controllers
         // GET: Events/Create
         public IActionResult Create()
         {
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "CategoryId");
             return View();
         }
 
@@ -56,7 +53,7 @@ namespace CommunityEvents.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("EventId,Title,Description,Location,Date,ParticipantLimit,CategoryId")] Event @event)
+        public async Task<IActionResult> Create([Bind("EventId,Title,Description,Location,CategoryName,Date,ParticipantLimit")] Event @event)
         {
             if (ModelState.IsValid)
             {
@@ -64,7 +61,6 @@ namespace CommunityEvents.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "CategoryId", @event.CategoryId);
             return View(@event);
         }
 
@@ -81,7 +77,6 @@ namespace CommunityEvents.Controllers
             {
                 return NotFound();
             }
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "CategoryId", @event.CategoryId);
             return View(@event);
         }
 
@@ -90,7 +85,7 @@ namespace CommunityEvents.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("EventId,Title,Description,Location,Date,ParticipantLimit,CategoryId")] Event @event)
+        public async Task<IActionResult> Edit(int id, [Bind("EventId,Title,Description,Location,CategoryName,Date,ParticipantLimit")] Event @event)
         {
             if (id != @event.EventId)
             {
@@ -117,7 +112,6 @@ namespace CommunityEvents.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "CategoryId", @event.CategoryId);
             return View(@event);
         }
 
@@ -130,7 +124,6 @@ namespace CommunityEvents.Controllers
             }
 
             var @event = await _context.Events
-                .Include(e => e.Category)
                 .FirstOrDefaultAsync(m => m.EventId == id);
             if (@event == null)
             {
