@@ -15,5 +15,27 @@ namespace CommunityEvents.Models
         public DbSet<Registration>? Registrations { get; set; }
         public DbSet<Notification>? Notifications { get; set; }
 
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+
+            builder.Entity<Event>()
+                .HasOne(e => e.Organizer)
+                .WithMany()
+                .HasForeignKey(e => e.OrganizerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Registration>()
+                .HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Review>()
+                .HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
     }
 }
