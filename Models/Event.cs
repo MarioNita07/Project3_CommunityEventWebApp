@@ -6,11 +6,11 @@
         public string? Title { get; set; }
         public string? Description { get; set; }
         public string? Location { get; set; }
+        public string? CategoryName { get; set; }
         public DateTime Date { get; set; }
         public int? ParticipantLimit { get; set; }
-        public int CategoryId { get; set; }
         public ICollection<Review>? Reviews { get; set; }
         public ICollection<Registration>? Registrations { get; set; }
-        public Category? Category { get; set; }
+        public ICollection<Notification>? Notifications { get; set; }
     }
 }

@@ -10,9 +10,8 @@ namespace CommunityEvents.Models
         
         public DbSet<Event>? Events { get; set; }
         public DbSet<Review>? Reviews { get; set; }
-        public DbSet<Category>? Categories { get; set; }
         public DbSet<Registration>? Registrations { get; set; }
-
+        public DbSet<Notification>? Notifications { get; set; }
 
     }
 }
