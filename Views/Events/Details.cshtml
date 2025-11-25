@@ -1,5 +1,11 @@
 ﻿@model CommunityEvents.Models.Event
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<IdentityUser> UserManager
 
+@{
+    var currentUser = await UserManager.GetUserAsync(User);
+    bool isOrganizer = currentUser != null && Model.OrganizerId == currentUser.Id;
+}
 @{
     ViewData["Title"] = "Details";
 }
@@ -48,6 +54,61 @@
         </dd>
     </dl>
 </div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
+@if (!isOrganizer)
+{
+    <div class="mt-4">
+        <h3>Join this Event</h3>
+        <form asp-action="Join" asp-route-id="@Model.EventId" method="post">
+            <button type="submit" class="btn btn-primary btn-lg">Register Now</button>
+        </form>
+    </div>
+}
+@if (isOrganizer)
+{
+    <hr />
+    <div class="card mt-4 border-info">
+        <div class="card-header bg-info text-white">
+            <h4>Organizer Dashboard: Participant List</h4>
+        </div>
+        <div class="card-body">
+            @if (Model.Registrations != null && Model.Registrations.Any())
+            {
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>Registration Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var reg in Model.Registrations)
+                        {
+                            <tr>
+                                <td>@reg.User?.Email</td>
+                                <td>@reg.RegistrationDate</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <p><strong>Total Participants:</strong> @Model.Registrations.Count / @(Model.ParticipantLimit?.ToString() ?? "Unlimited")</p>
+            }
+            else
+            {
+                <p class="text-muted">No participants have registered yet.</p>
+            }
+        </div>
+    </div>
+}
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.EventId">Edit</a> |
     <a asp-action="Index">Back to List</a>
