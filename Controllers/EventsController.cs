@@ -1,39 +1,51 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using CommunityEvents.Models;
+using CommunityEvents.Services.Interfaces;
 
 namespace CommunityEvents.Controllers
 {
     public class EventsController : Controller
     {
-        private readonly CommunityEventContext _context;
+        private readonly IEventService _eventService;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public EventsController(CommunityEventContext context)
+        public EventsController(IEventService eventService, UserManager<IdentityUser> userManager)
         {
-            _context = context;
+            _eventService = eventService;
+            _userManager = userManager;
         }
 
         // GET: Events
-        public async Task<IActionResult> Index()
+        // Shows all upcoming events (Visible to everyone)
+        public IActionResult Index()
         {
-            return View(await _context.Events.ToListAsync());
+            var events = _eventService.GetUpcomingEvents();
+            return View(events);
+        }
+
+        // GET: Events/MyEvents
+        // Shows only events created by the logged-in Organizer
+        [Authorize(Roles = "Organizer,Admin")]
+        public async Task<IActionResult> MyEvents()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var myEvents = _eventService.GetMyEvents(user.Id);
+            return View(myEvents);
         }
 
         // GET: Events/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public IActionResult Details(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var @event = await _context.Events
-                .FirstOrDefaultAsync(m => m.EventId == id);
+            var @event = _eventService.GetEventById(id.Value);
             if (@event == null)
             {
                 return NotFound();
@@ -43,91 +55,78 @@ namespace CommunityEvents.Controllers
         }
 
         // GET: Events/Create
+        [Authorize(Roles = "Organizer,Admin")]
         public IActionResult Create()
         {
             return View();
         }
 
         // POST: Events/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("EventId,Title,Description,Location,CategoryName,Date,ParticipantLimit")] Event @event)
+        [Authorize(Roles = "Organizer,Admin")]
+        public async Task<IActionResult> Create([Bind("Title,Description,Location,CategoryName,Date,ParticipantLimit")] Event @event)
         {
+            // Remove Organizer validation because we set it manually below
+            ModelState.Remove("Organizer");
+            ModelState.Remove("OrganizerId");
+
             if (ModelState.IsValid)
             {
-                _context.Add(@event);
-                await _context.SaveChangesAsync();
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null) return Challenge();
+
+                // AUTOMATICALLY ASSIGN THE LOGGED-IN USER AS ORGANIZER
+                @event.OrganizerId = user.Id;
+
+                _eventService.CreateEvent(@event);
+
                 return RedirectToAction(nameof(Index));
             }
             return View(@event);
         }
 
-        // GET: Events/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var @event = await _context.Events.FindAsync(id);
-            if (@event == null)
-            {
-                return NotFound();
-            }
-            return View(@event);
-        }
-
-        // POST: Events/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: Events/Join/5
+        // Action to handle registrations
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("EventId,Title,Description,Location,CategoryName,Date,ParticipantLimit")] Event @event)
+        public async Task<IActionResult> Join(int id)
         {
-            if (id != @event.EventId)
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            // Call the service to attempt registration
+            // Returns null if successful, or an error string if failed
+            string? errorMessage = _eventService.RegisterUserForEvent(id, user.Id);
+
+            if (errorMessage == null)
             {
-                return NotFound();
+                TempData["SuccessMessage"] = "You have successfully registered for this event!";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = errorMessage;
             }
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(@event);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!EventExists(@event.EventId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(@event);
+            // Redirect back to the details page to show the message
+            return RedirectToAction(nameof(Details), new { id = id });
         }
 
         // GET: Events/Delete/5
+        [Authorize(Roles = "Organizer,Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var @event = await _context.Events
-                .FirstOrDefaultAsync(m => m.EventId == id);
-            if (@event == null)
+            var @event = _eventService.GetEventById(id.Value);
+            if (@event == null) return NotFound();
+
+            // Ensure the user deleting it is the one who created it (or is Admin)
+            var user = await _userManager.GetUserAsync(User);
+            if (!User.IsInRole("Admin") && @event.OrganizerId != user.Id)
             {
-                return NotFound();
+                return Forbid(); // Return 403 Forbidden
             }
 
             return View(@event);
@@ -136,21 +135,11 @@ namespace CommunityEvents.Controllers
         // POST: Events/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        [Authorize(Roles = "Organizer,Admin")]
+        public IActionResult DeleteConfirmed(int id)
         {
-            var @event = await _context.Events.FindAsync(id);
-            if (@event != null)
-            {
-                _context.Events.Remove(@event);
-            }
-
-            await _context.SaveChangesAsync();
+            _eventService.DeleteEvent(id);
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool EventExists(int id)
-        {
-            return _context.Events.Any(e => e.EventId == id);
         }
     }
 }
