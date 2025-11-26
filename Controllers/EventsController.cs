@@ -61,7 +61,7 @@ namespace CommunityEvents.Controllers
         }
 
         // GET: Events/Create
-        [Authorize(Roles = "Organizer,Admin")]
+        [Authorize(Roles = "Participant,Organizer")]
         public IActionResult Create()
         {
             return View();
@@ -70,7 +70,7 @@ namespace CommunityEvents.Controllers
         // POST: Events/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Organizer,Admin")]
+        [Authorize(Roles = "Participant,Organizer")]
         public async Task<IActionResult> Create([Bind("Title,Description,Location,CategoryName,Date,ParticipantLimit")] Event @event)
         {
             // Remove Organizer validation because we set it manually below
@@ -84,6 +84,8 @@ namespace CommunityEvents.Controllers
 
                 // AUTOMATICALLY ASSIGN THE LOGGED-IN USER AS ORGANIZER
                 @event.OrganizerId = user.Id;
+
+                await _eventService.CreateEvent(@event);
 
                 _eventService.CreateEvent(@event);
 
@@ -185,7 +187,7 @@ namespace CommunityEvents.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (!User.IsInRole("Admin") && @event.OrganizerId != user.Id)
             {
-                return Forbid(); // Return 403 Forbidden
+                return Forbid(); 
             }
 
             return View(@event);
@@ -195,9 +197,12 @@ namespace CommunityEvents.Controllers
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Organizer,Admin")]
-        public IActionResult DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            _eventService.DeleteEvent(id);
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            await _eventService.DeleteEvent(id, user.Id);
             return RedirectToAction(nameof(Index));
         }
     }
