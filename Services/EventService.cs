@@ -1,16 +1,22 @@
 ﻿using CommunityEvents.Models;
+using Microsoft.AspNetCore.Identity;
 using CommunityEvents.Repositories.Interfaces;
 using CommunityEvents.Services.Interfaces;
+using System.Threading.Tasks;
 
 namespace CommunityEvents.Services
 {
     public class EventService : IEventService
     {
         private readonly IRepositoryWrapper _repositoryWrapper;
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly SignInManager<IdentityUser> _signInManager;
 
-        public EventService(IRepositoryWrapper repositoryWrapper)
+        public EventService(IRepositoryWrapper repositoryWrapper, UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager)
         {
             _repositoryWrapper = repositoryWrapper;
+            _userManager = userManager;
+            _signInManager = signInManager;
         }
 
         public IEnumerable<Event> GetUpcomingEvents()
@@ -29,19 +35,48 @@ namespace CommunityEvents.Services
             return _repositoryWrapper.EventRepository.GetEventByIdWithDetails(id);
         }
 
-        public void CreateEvent(Event eventModel)
+        public async Task CreateEvent(Event eventModel)
         {
             _repositoryWrapper.EventRepository.Create(eventModel);
             _repositoryWrapper.Save();
+
+            // If the user created an event, they are now an organizer.
+            var user = await _userManager.FindByIdAsync(eventModel.OrganizerId);
+            if (user != null)
+            {
+                if (!await _userManager.IsInRoleAsync(user, "Organizer"))
+                {
+                    await _userManager.AddToRoleAsync(user, "Organizer");
+                    await _userManager.RemoveFromRoleAsync(user, "Participant");
+
+                    await _signInManager.RefreshSignInAsync(user);
+                }
+            }
         }
 
-        public void DeleteEvent(int id)
+        public async Task DeleteEvent(int id, string userId)
         {
             var eventToDelete = _repositoryWrapper.EventRepository.FindByCondition(e => e.EventId == id).FirstOrDefault();
             if (eventToDelete != null)
             {
                 _repositoryWrapper.EventRepository.Delete(eventToDelete);
                 _repositoryWrapper.Save();
+
+                // Check if the user has any events left
+                var remainingEvents = _repositoryWrapper.EventRepository.GetEventsByOrganizer(userId);
+
+                if (!remainingEvents.Any())
+                {
+                    // If no events left, downgrade role to Participant
+                    var user = await _userManager.FindByIdAsync(userId);
+                    if (user != null)
+                    {
+                        await _userManager.RemoveFromRoleAsync(user, "Organizer");
+                        await _userManager.AddToRoleAsync(user, "Participant");
+
+                        await _signInManager.RefreshSignInAsync(user);
+                    }
+                }
             }
         }
 
@@ -58,7 +93,7 @@ namespace CommunityEvents.Services
             var eventDetails = _repositoryWrapper.EventRepository.GetEventByIdWithDetails(eventId);
             if (eventDetails == null) return "Event not found.";
 
-            // 2. Check if user is the organzier itself
+            // 2. Check if user is the organizer itself
             if (eventDetails.OrganizerId == userId)
             {
                 return "You cannot join your own event.";
