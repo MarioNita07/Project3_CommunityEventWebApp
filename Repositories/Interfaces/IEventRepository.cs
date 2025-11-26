@@ -7,5 +7,6 @@ namespace CommunityEvents.Repositories.Interfaces
             IEnumerable<Event> GetAllEventsWithDetails();
             Event? GetEventByIdWithDetails(int eventId);
             IEnumerable<Event> GetEventsByOrganizer(string organizerId);
+            IEnumerable<Event> GetEventsByConditions(string? searchTerm, string? category, string? location, DateTime? date);
     }
 }
