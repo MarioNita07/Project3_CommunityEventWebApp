@@ -7,5 +7,7 @@ namespace CommunityEvents.Repositories.Interfaces
             bool IsUserRegistered(int eventId, string userId);
             int GetRegistrationCount(int eventId);
             IEnumerable<Registration> GetRegistrationsByUser(string userId);
+            void DeleteRegistration(int eventId, string userId);
+
     }
 }

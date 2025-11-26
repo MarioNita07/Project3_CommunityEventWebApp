@@ -2,12 +2,24 @@
 @using Microsoft.AspNetCore.Identity
 @inject UserManager<IdentityUser> UserManager
 
-@{
-    var currentUser = await UserManager.GetUserAsync(User);
-    bool isOrganizer = currentUser != null && Model.OrganizerId == currentUser.Id;
-}
+
 @{
     ViewData["Title"] = "Details";
+    var currentUser = await UserManager.GetUserAsync(User);
+
+    //Check if current user is the organizer of the event
+    bool isOrganizer = currentUser != null && Model.OrganizerId == currentUser.Id;
+
+    // Check if the current user is already registered for the event
+    bool isRegistered = currentUser != null && Model.Registrations != null &&
+                        Model.Registrations.Any(r => r.UserId == currentUser.Id);
+
+    // Calculate counts
+    int currentCount = Model.Registrations?.Count ?? 0;
+    int limit = Model.ParticipantLimit ?? 0;
+    string limitDisplay = Model.ParticipantLimit.HasValue ? Model.ParticipantLimit.ToString() : "Unlimited";
+
+
 }
 
 <h1>Details</h1>
@@ -55,6 +67,41 @@
     </dl>
 </div>
 
+<div class="alert-info mt-3">
+    <h5>
+        Participants: <strong>@currentCount / @limitDisplay</strong>
+    </h5>
+</div>
+
+<div class="mt-4">
+    @if (isOrganizer)
+    {
+        <a asp-action="Edit" asp-route-id="@Model.EventId" class="btn btn-warning">Edit Event</a>
+        <a asp-action="Delete" asp-route-id="@Model.EventId" class="btn btn-danger">Delete Event</a>
+    }
+    else if (isRegistered)
+    {
+        <div class="alert alert-success d-inline-block">
+            You are attending this event.
+        </div>
+        <form asp-action="Leave" asp-route-id="@Model.EventId" method="post" class="d-inline">
+            <button type="submit" class="btn btn-outline-danger">Leave Event</button>
+        </form>
+    }
+    else
+    {
+        @if (Model.ParticipantLimit.HasValue && currentCount >= limit)
+        {
+            <button class="btn btn-secondary btn-lg" disabled> Event Full</button>
+        }
+        else
+        {
+            <form asp-action="Join" asp-route-id="@Model.EventId" method="post">
+				<button type="submit" class="btn btn-primary btn-lg">Register Now</button>
+            </form>
+        }
+    }
+</div>
 @if (TempData["SuccessMessage"] != null)
 {
     <div class="alert alert-success">@TempData["SuccessMessage"]</div>
@@ -64,15 +111,6 @@
     <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
 }
 
-@if (!isOrganizer)
-{
-    <div class="mt-4">
-        <h3>Join this Event</h3>
-        <form asp-action="Join" asp-route-id="@Model.EventId" method="post">
-            <button type="submit" class="btn btn-primary btn-lg">Register Now</button>
-        </form>
-    </div>
-}
 @if (isOrganizer)
 {
     <hr />
@@ -110,6 +148,5 @@
     </div>
 }
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.EventId">Edit</a> |
     <a asp-action="Index">Back to List</a>
 </div>

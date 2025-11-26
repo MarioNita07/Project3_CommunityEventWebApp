@@ -12,5 +12,7 @@ namespace CommunityEvents.Services.Interfaces
             void UpdateEvent(Event eventModel);
             string? RegisterUserForEvent(int eventId, string userId);
             IEnumerable<Event> SearchEvents(string? searchTerm, string? category, string? location, DateTime? date);
+            void LeaveEvent(int eventId, string userId);
+
     }
 }

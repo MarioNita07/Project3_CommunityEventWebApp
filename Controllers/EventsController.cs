@@ -174,6 +174,21 @@ namespace CommunityEvents.Controllers
             return RedirectToAction(nameof(Details), new { id = id });
         }
 
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async  Task<IActionResult> Leave(int id)
+            {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            _eventService.LeaveEvent(id, user.Id);
+
+            TempData["SuccessMessage"] = "You have successfully left the event.";
+
+            return RedirectToAction(nameof(Details), new { id = id });
+        }
+
         // GET: Events/Delete/5
         [Authorize(Roles = "Organizer,Admin")]
         public async Task<IActionResult> Delete(int? id)
