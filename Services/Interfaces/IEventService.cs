@@ -13,6 +13,7 @@ namespace CommunityEvents.Services.Interfaces
             string? RegisterUserForEvent(int eventId, string userId);
             IEnumerable<Event> SearchEvents(string? searchTerm, string? category, string? location, DateTime? date);
             void LeaveEvent(int eventId, string userId);
+            IEnumerable<Registration> GetMyRegistrations(string userId);
 
     }
 }
