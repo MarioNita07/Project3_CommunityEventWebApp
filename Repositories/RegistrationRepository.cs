@@ -24,5 +24,14 @@ namespace CommunityEvents.Repositories
         {
             return FindByCondition(r => r.UserId == userId).ToList();
         }
+
+        public void DeleteRegistration(int eventId, string userId)
+        {
+            var registration = FindByCondition(r => r.EventId == eventId && r.UserId == userId).FirstOrDefault();
+            if (registration != null)
+            {
+                Delete(registration);
+            }
+        }
     }
 }

@@ -128,5 +128,11 @@ namespace CommunityEvents.Services
         {
             return _repositoryWrapper.EventRepository.GetEventsByConditions(searchTerm, category, location, date);
         }
+
+        public void LeaveEvent(int eventId, string userId)
+        {
+            _repositoryWrapper.RegistrationRepository.DeleteRegistration(eventId, userId);
+            _repositoryWrapper.Save();
+        }
     }
 }
