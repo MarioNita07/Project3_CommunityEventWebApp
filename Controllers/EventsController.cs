@@ -43,6 +43,17 @@ namespace CommunityEvents.Controllers
             return View(myEvents);
         }
 
+        // GET: Events/MyRegistrations
+        [Authorize]
+        public async Task<IActionResult> MyRegistrations()
+        {
+            var user  = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var myRegistrations = _eventService.GetMyRegistrations(user.Id);
+            return View(myRegistrations);
+        }
+
         // GET: Events/Details/5
         public IActionResult Details(int? id)
         {

@@ -1,5 +1,6 @@
 ﻿using CommunityEvents.Models;
 using CommunityEvents.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace CommunityEvents.Repositories
 {
@@ -22,7 +23,10 @@ namespace CommunityEvents.Repositories
 
         public IEnumerable<Registration> GetRegistrationsByUser(string userId)
         {
-            return FindByCondition(r => r.UserId == userId).ToList();
+            return FindByCondition(r => r.UserId == userId)
+                .Include(r =>r.Event)
+                .ToList();
+
         }
 
         public void DeleteRegistration(int eventId, string userId)

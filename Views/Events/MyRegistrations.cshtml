@@ -1,0 +1,50 @@
+﻿@model IEnumerable<CommunityEvents.Models.Registration>
+
+@{
+	ViewData["Title"] = "My Event Registrations";
+}
+
+<h2>My Registered Events</h2>
+
+@if (!Model.Any())
+{
+	<div class="alert alert-info">
+		You have not registered for any events yet.
+		<a asp-action="Index" class="alert-link">Browse events here</a>.
+	</div>
+}
+else
+{
+	<table class="table table-hover">
+		<thead>
+			<tr>
+				<th>Event</th>
+				<th>Date</th>
+				<th>Location</th>
+				<th>Registered On</th>
+				<th>Actions</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var item in Model)
+			{
+				<tr>
+					<td>
+						<strong>@item.Event?.Title</strong><br/>
+						<span class="badge bg-secondary">@item.Event?.CategoryName</span>
+					</td>
+					<td>@item.Event?.Date.ToString("g")</td>
+					<td>@item.Event?.Location</td>
+					<td>@item.RegistrationDate.ToShortDateString()</td>
+					<td>
+						<a asp-action="Details" asp-route-id="@item.EventId" class="btn btn-info btn-sm">Details</a>
+						<form asp-action="Leave" asp-route-id="@item.EventId" method="post" class="d-inline"
+						onsubmit="return confirm ('Are you sure you want to leave this event?');">
+					<button type="submit" class="btn btn-outline-danger btn-sm">Leave</button>
+				</form>
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}

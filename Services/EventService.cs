@@ -134,5 +134,10 @@ namespace CommunityEvents.Services
             _repositoryWrapper.RegistrationRepository.DeleteRegistration(eventId, userId);
             _repositoryWrapper.Save();
         }
+
+        public IEnumerable<Registration> GetMyRegistrations(string userId)
+        {
+            return _repositoryWrapper.RegistrationRepository.GetRegistrationsByUser(userId);
+        }
     }
 }
