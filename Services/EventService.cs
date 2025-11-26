@@ -89,5 +89,9 @@ namespace CommunityEvents.Services
 
             return null; // Success
         }
+        public IEnumerable<Event> SearchEvents(string? searchTerm, string? category, string? location, DateTime? date)
+        {
+            return _repositoryWrapper.EventRepository.GetEventsByConditions(searchTerm, category, location, date);
+        }
     }
 }

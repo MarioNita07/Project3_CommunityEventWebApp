@@ -6,6 +6,7 @@ using CommunityEvents.Services.Interfaces;
 
 namespace CommunityEvents.Controllers
 {
+    [Authorize]
     public class EventsController : Controller
     {
         private readonly IEventService _eventService;
@@ -19,9 +20,14 @@ namespace CommunityEvents.Controllers
 
         // GET: Events
         // Shows all upcoming events (Visible to everyone)
-        public IActionResult Index()
+        public IActionResult Index(string? searchTerm, string? category, string? location, DateTime? date)
         {
-            var events = _eventService.GetUpcomingEvents();
+            ViewBag.CurrentSearchTerm = searchTerm;
+            ViewBag.CurrentCategory = category;
+            ViewBag.CurrentLocation = location;
+            ViewBag.CurrentDate = date?.ToString("yyyy-MM-dd");
+
+            var events = _eventService.SearchEvents(searchTerm, category, location, date);
             return View(events);
         }
 

@@ -1,65 +1,98 @@
 ﻿@model IEnumerable<CommunityEvents.Models.Event>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Browse Events";
 }
 
-<h1>Index</h1>
+<div class="text-center mb-5">
+    <h1 class="display-4">Explore Community Events</h1>
+    <p class="lead">Find and join local activities happening near you.</p>
+</div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Title)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Description)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Location)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CategoryName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Date)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ParticipantLimit)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Title)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Location)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CategoryName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Date)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ParticipantLimit)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.EventId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.EventId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.EventId">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+<!-- SEARCH & FILTER FORM -->
+<div class="card mb-4 p-3 bg-light">
+    <form asp-action="Index" method="get">
+        <div class="row g-3">
+            <!-- Keyword Search -->
+            <div class="col-md-3">
+                <input type="text" name="searchTerm" class="form-control"
+                       placeholder="Search events..." value="@ViewBag.CurrentSearch" />
+            </div>
+
+            <!-- Category Filter -->
+            <div class="col-md-3">
+                <select name="category" class="form-control">
+                    <option value="">All Categories</option>
+                    <!-- Logic to keep the selected option active -->
+                    @foreach (var cat in new[] { "Sports", "Education", "Social", "Culture", "Music" })
+                    {
+                        if (ViewBag.CurrentCategory == cat)
+                        {
+                            <option value="@cat" selected>@cat</option>
+                        }
+                        else
+                        {
+                            <option value="@cat">@cat</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <!-- Location Filter -->
+            <div class="col-md-2">
+                <input type="text" name="location" class="form-control"
+                       placeholder="Location" value="@ViewBag.CurrentLocation" />
+            </div>
+
+            <!-- Date Filter -->
+            <div class="col-md-2">
+                <input type="date" name="date" class="form-control"
+                       value="@ViewBag.CurrentDate" />
+            </div>
+
+            <!-- Search Button -->
+            <div class="col-md-2 d-grid">
+                <button type="submit" class="btn btn-primary">Search</button>
+            </div>
+        </div>
+
+        <!-- Clear Filters Link -->
+        @if (!string.IsNullOrEmpty(ViewBag.CurrentSearch) || !string.IsNullOrEmpty(ViewBag.CurrentCategory)
+        || !string.IsNullOrEmpty(ViewBag.CurrentLocation) || !string.IsNullOrEmpty(ViewBag.CurrentDate))
+        {
+            <div class="mt-2 text-end">
+                <a asp-action="Index" class="text-danger text-decoration-none small">Clear Filters X</a>
+            </div>
+        }
+    </form>
+</div>
+
+
+<div class="row">
+    @if (!Model.Any())
+    {
+        <div class="col-12 text-center mt-5">
+            <h4 class="text-muted">No events found matching your criteria.</h4>
+        </div>
+    }
+    else
+    {
+        @foreach (var item in Model)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <span class="badge bg-info text-dark float-end">@item.CategoryName</span>
+                        <h5 class="card-title">@item.Title</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">@item.Date.ToString("MMM dd, yyyy @ HH:mm")</h6>
+                        <p class="card-text text-truncate">@item.Description</p>
+                        <p class="card-text"><small class="text-muted">📍 @item.Location</small></p>
+                    </div>
+                    <div class="card-footer bg-white border-top-0">
+                        <a asp-action="Details" asp-route-id="@item.EventId" class="btn btn-outline-primary w-100">View Details</a>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
