@@ -4,6 +4,7 @@
     {
         IEventRepository EventRepository { get; }
         IRegistrationRepository RegistrationRepository { get; }
+        IReviewRepository ReviewRepository { get; }
 
         void Save();
     }
