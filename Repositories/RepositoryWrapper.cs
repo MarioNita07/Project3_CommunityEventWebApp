@@ -8,6 +8,7 @@ namespace CommunityEvents.Repositories
         private CommunityEventContext _communityEventContext;
         private IEventRepository? _eventRepository;
         private IRegistrationRepository? _registrationRepository;
+        private IReviewRepository? _reviewRepository;
 
         public IEventRepository EventRepository
         {
@@ -30,6 +31,17 @@ namespace CommunityEvents.Repositories
                     _registrationRepository = new RegistrationRepository(_communityEventContext);
                 }
                 return _registrationRepository;
+            }
+        }
+        public IReviewRepository ReviewRepository
+        {
+            get
+            {
+                if (_reviewRepository == null)
+                {
+                    _reviewRepository = new ReviewRepository(_communityEventContext);
+                }
+                return _reviewRepository;
             }
         }
 

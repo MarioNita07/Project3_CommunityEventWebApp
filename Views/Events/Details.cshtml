@@ -14,6 +14,8 @@
     bool isRegistered = currentUser != null && Model.Registrations != null &&
                         Model.Registrations.Any(r => r.UserId == currentUser.Id);
 
+	bool hasReviewed = Model.Reviews != null && Model.Reviews.Any(r => r.UserId == currentUser?.Id);
+
     // Calculate counts
     int currentCount = Model.Registrations?.Count ?? 0;
     int limit = Model.ParticipantLimit ?? 0;
@@ -97,7 +99,7 @@
         else
         {
             <form asp-action="Join" asp-route-id="@Model.EventId" method="post">
-				<button type="submit" class="btn btn-primary btn-lg">Register Now</button>
+                <button type="submit" class="btn btn-primary btn-lg">Register Now</button>
             </form>
         }
     }
@@ -147,6 +149,97 @@
         </div>
     </div>
 }
+<hr class="mt-5" />
+<div class="row">
+    <div class="col-md-8">
+        <h3>User Reviews</h3>
+
+        <!-- REVIEW FORM (for registered participants)-->
+        @if (isRegistered && !isOrganizer && !hasReviewed)
+        {
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Leave a Review</h5>
+                    <form asp-action="AddReview" method="post">
+                        <input type="hidden" name="EventId" value="@Model.EventId" />
+                        <!-- Star Rating UI-->
+                        <div class="mb-3">
+                            <div class="rate">
+                                <input type="radio" id="star5" name="Rating" value="5" /><label for="star5" title="5 stars"></label>
+                                <input type="radio" id="star4" name="Rating" value="4" /><label for="star4" title="4 stars"></label>
+                                <input type="radio" id="star3" name="Rating" value="3" /><label for="star3" title="3 stars"></label>
+                                <input type="radio" id="star2" name="Rating" value="2" /><label for="star2" title="2 stars"></label>
+                                <input type="radio" id="star1" name="Rating" value="1" /><label for="star1" title="1 star"></label>
+                            </div>
+                            <div style="clear:both;"></div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <textarea name="Content" class="form-control" rows="3" placeholder="Share your experience..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Post Review</button>
+                    </form>
+                </div>
+            </div>
+        }
+		else if (isRegistered && hasReviewed)
+		{
+			<div class="alert alert-info">
+				You have already reviewed this event.
+			</div>
+		}
+		else if (!isRegistered && !isOrganizer)
+		{
+			<div class="alert alert-warning">
+				You must be registered for this event to leave a review.
+			</div>
+		}
+
+        <!-- REVIEWS LIST-->
+        @if (Model.Reviews != null && Model.Reviews.Any())
+        {
+            @foreach (var review in Model.Reviews.OrderByDescending(r => r.ReviewId))
+            {
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <h6 class="card-subtitle mb-2 text-muted">
+                                @(review.User?.UserName ?? "Anonymous")
+                            </h6>
+                            <!-- Display stars-->
+                            <div class="text-warning">
+                                @for (int i = 0; i < review.Rating; i++)
+                                {
+                                    <span>★</span>
+                                }
+                                @for (int i = 0; i < (5 - review.Rating); i++)
+                                {
+                                    <span class="text-muted"> ★ </span>
+                                }
+                            </div>
+                        </div>
+
+                        <p class="card-text">@review.Content</p>
+
+                        <!-- Moderation section-->
+                        @if (isOrganizer || User.IsInRole("Admin"))
+                        {
+                            <form asp-action="DeleteReview" method="post" onsubmit="return confirm('Delete this review?');">
+                                <input type="hidden" name="reviewId" value="@review.ReviewId" />
+                                <input type="hidden" name="eventId" value="@Model.EventId" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Remove Review</button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+		<p class="text-muted">No reviews yet. Be the first to review this event!</p>
+		}
+    </div>
+</div>
 <div>
     <a asp-action="Index">Back to List</a>
 </div>

@@ -11,10 +11,12 @@ namespace CommunityEvents.Controllers
     {
         private readonly IEventService _eventService;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly IReviewService _reviewService;
 
-        public EventsController(IEventService eventService, UserManager<IdentityUser> userManager)
+        public EventsController(IEventService eventService, IReviewService reviewService, UserManager<IdentityUser> userManager)
         {
             _eventService = eventService;
+            _reviewService = reviewService;
             _userManager = userManager;
         }
 
@@ -230,6 +232,53 @@ namespace CommunityEvents.Controllers
 
             await _eventService.DeleteEvent(id, user.Id);
             return RedirectToAction(nameof(Index));
+        }
+
+        //POST: Events/AddReview
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddReview([Bind("EventId,Content,Rating")] Review review)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            // Set userID manually
+            review.UserId = user.Id;
+            review.IsApproved = true; // Reviews need approval
+
+            // Basic validation
+            if (review.Rating < 1 || review.Rating > 5)
+            {
+                TempData["ErrorMessage"] = "Rating must be between 1 and 5.";
+                return RedirectToAction(nameof(Details), new { id = review.EventId });
+            }
+
+            bool isAdded = _reviewService.AddReview(review);
+
+            if (isAdded)
+            {
+                TempData["SuccessMessage"] = "Review posted successfully!";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "You have already reviewed this event.";
+            }
+            return RedirectToAction(nameof(Details), new { id = review.EventId });
+        }
+
+        //POST: Events/DeleteReview/5
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteReview(int reviewId, int eventId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            _reviewService.DeleteReview(reviewId, user.Id, User.IsInRole("Admin"));
+
+            return RedirectToAction(nameof(Details), new { id = eventId });
         }
     }
 }
