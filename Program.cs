@@ -63,13 +63,19 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     try
     {
-        // This runs the code we just wrote
+        // get the context
+        var context = services.GetRequiredService<CommunityEvents.Models.CommunityEventContext>();
+
+        // run migrations
+        context.Database.Migrate();
+
+        // run seeder
         await CommunityEvents.Data.DbSeeder.SeedRolesAndUsersAsync(services);
     }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while seeding the database.");
+        logger.LogError(ex, "An error occurred while seeding/migrating the database.");
     }
 }
 
