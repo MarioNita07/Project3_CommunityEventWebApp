@@ -46,8 +46,10 @@ builder.Services.Configure<IdentityOptions>(options =>
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddScoped<IRegistrationRepository, RegistrationRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

@@ -14,6 +14,7 @@ namespace CommunityEvents.Models
         public DbSet<Review>? Reviews { get; set; }
         public DbSet<Registration>? Registrations { get; set; }
         public DbSet<Notification>? Notifications { get; set; }
+        public DbSet<NotificationPreference>? NotificationPreferences { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

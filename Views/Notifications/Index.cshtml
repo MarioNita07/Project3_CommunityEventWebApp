@@ -1,0 +1,58 @@
+﻿@model IEnumerable<CommunityEvents.Models.Notification>
+
+@{
+	ViewData["Title"] = "Notifications";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+	<h1>Your notifications</h1>
+	<a asp-action="Settings" class="btn btn-outline-secondary">
+		Notification settings
+	</a>
+</div>
+
+@if(!Model.Any())
+{
+	<div class="alert alert-info text-center py-5">
+		<h4>All caught up!</h4>
+		<p>You have no notifications at the moment.</p>
+		<a asp-controller="Events" asp-action="Index" class="btn btn-primary mt-2">Browse Events</a>
+	</div>
+}
+else
+{
+	<div class="list-group">
+		@foreach (var item in Model)
+		{
+			string activeClass = (item.IsRead == false) ? "list-group-item-light border-primary" : "";
+
+			<div class="list-group-item list-group-item-action @activeClass">
+				<div class="d-flex w-100 justify-content-between">
+					<div class="me-auto">
+						<h5 class="mb-1">
+							@if(item.RelatedEventId != null)
+							{
+								<a asp-controller="Events" asp-action="Details" asp-route-id="@item.RelatedEventId" class="text-decoration-none text-dark stretched-link"></a>
+							}
+							@if (item.IsRead == false)
+							{
+								<span class="badge bg-primary rounded-pill me-2">NEW</span>
+							}
+						</h5>
+						<p class="mb-1">@item.Message</p>
+
+						@if (item.RelatedEventId != null)
+						{
+							<small class="text-primary">Click to view event details</small>
+						}
+						<small class="text-muted small mt-1">@item.DateCreated.ToString("g")</small>
+					</div>
+
+					<form asp-action="Delete" asp-route-id="@item.NotificationId" method="post" style="position: relative; z-index: 2;">
+						<button type="submit" class="btn-close" aria-laber="Delete" title="Delete notification"></button>
+					</form>
+				</div>
+			</div>
+		}
+	</div>
+}

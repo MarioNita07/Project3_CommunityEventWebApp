@@ -9,14 +9,16 @@ namespace CommunityEvents.Services
     public class EventService : IEventService
     {
         private readonly IRepositoryWrapper _repositoryWrapper;
+        private readonly INotificationService _notificationService;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
 
-        public EventService(IRepositoryWrapper repositoryWrapper, UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager)
+        public EventService(IRepositoryWrapper repositoryWrapper, UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, INotificationService notificationService)
         {
             _repositoryWrapper = repositoryWrapper;
             _userManager = userManager;
             _signInManager = signInManager;
+            _notificationService = notificationService;
         }
 
         public IEnumerable<Event> GetUpcomingEvents()
@@ -39,6 +41,8 @@ namespace CommunityEvents.Services
         {
             _repositoryWrapper.EventRepository.Create(eventModel);
             _repositoryWrapper.Save();
+
+            _notificationService.NotifyAllUsersOfNewEvent(eventModel.EventId, eventModel.Title);
 
             // If the user created an event, they are now an organizer.
             var user = await _userManager.FindByIdAsync(eventModel.OrganizerId);
@@ -84,6 +88,8 @@ namespace CommunityEvents.Services
         {
             _repositoryWrapper.EventRepository.Update(eventModel);
             _repositoryWrapper.Save();
+
+            _notificationService.NotifyParticipantsOfUpdate(eventModel.EventId, eventModel.Title);
         }
 
         // Returns string? as an error message. If null, it succeeded.
