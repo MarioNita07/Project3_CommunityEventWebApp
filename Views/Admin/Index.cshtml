@@ -1,0 +1,48 @@
+﻿@model CommunityEvents.Models.ViewModels.AdminDashboardViewModel
+
+@{
+	ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="container mt-4">
+	<h1 class="mb-4">Administrator Dashboard</h1>
+
+	<div class="row mb-4">
+		<!-- Users card-->
+		<div class="col-md-4">
+			<div class="card text-white bg-primary mb-3 h-100">
+				<div class="card-header">Total Users</div>
+				<div class="card-body">
+					<h1 class="card-title display-4">@Model.TotalUsers</h1>
+					<p class="card-text">Registered members.</p>
+				</div>
+			</div>
+		</div>
+
+		<!-- Events card-->
+		<div class="col-md-4">
+			<div class="card text-white bg-warning mb-3 h-100">
+				<div class="card-header">Total reviews</div>
+				<div class="card-body">
+					<h1 class="card-title display-4">@Model.TotalReviews</h1>
+					<p class="card-text">Submitted event reviews.</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="card">
+		<div class="card-header">
+			Management tools
+		</div>
+		<div class="list-group list-group-flush">
+			<a asp-action="Reviews" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+				<span> Moderate reviews</span>
+				<span class="badge bg-secondary rounded-pill">View all</span>
+			</a>
+			<a asp-controller="Events" asp-action="Index" class="list-group-item list-group-item-action">
+				Manage Events
+			</a>
+		</div>
+	</div>
+</div>
