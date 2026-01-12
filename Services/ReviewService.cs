@@ -8,10 +8,12 @@ namespace CommunityEvents.Services
     public class ReviewService : IReviewService
     {
         private readonly IRepositoryWrapper _repositoryWrapper;
+        private readonly INotificationService _notificationService;
 
-        public ReviewService(IRepositoryWrapper repositoryWrapper)
+        public ReviewService(IRepositoryWrapper repositoryWrapper, INotificationService notificationService)
         {
             _repositoryWrapper = repositoryWrapper;
+            _notificationService = notificationService;
         }
         public bool AddReview(Review review)
         {
@@ -22,6 +24,15 @@ namespace CommunityEvents.Services
 
             _repositoryWrapper.ReviewRepository.Create(review);
             _repositoryWrapper.Save();
+
+            // Get event to find organizer
+            var evt = _repositoryWrapper.EventRepository.GetEventByIdWithDetails(review.EventId);
+
+            // Notification
+            if(evt != null)
+            {
+                _notificationService.NotifyOrganizerOfComment(evt.EventId, evt.Title, evt.OrganizerId);
+            }
 
             return true;
         }

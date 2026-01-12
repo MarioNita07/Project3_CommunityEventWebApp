@@ -40,6 +40,11 @@
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Events" asp-action="MyRegistrations">My Registrations</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Notifications" asp-action="Index">
+                                    Notifications
+                                </a>
+                            </li>
 
                         }
                         @if (User.IsInRole("Organizer"))

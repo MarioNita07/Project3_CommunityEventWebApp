@@ -5,6 +5,7 @@
         IEventRepository EventRepository { get; }
         IRegistrationRepository RegistrationRepository { get; }
         IReviewRepository ReviewRepository { get; }
+        INotificationRepository NotificationRepository { get; }
 
         void Save();
     }
