@@ -76,7 +76,7 @@
 </div>
 
 <div class="mt-4">
-    @if (isOrganizer)
+    @if (isOrganizer || User.IsInRole("Admin"))
     {
         <a asp-action="Edit" asp-route-id="@Model.EventId" class="btn btn-warning">Edit Event</a>
         <a asp-action="Delete" asp-route-id="@Model.EventId" class="btn btn-danger">Delete Event</a>
