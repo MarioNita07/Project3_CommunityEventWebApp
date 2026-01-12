@@ -63,6 +63,32 @@ namespace CommunityEvents.Services
             var eventToDelete = _repositoryWrapper.EventRepository.FindByCondition(e => e.EventId == id).FirstOrDefault();
             if (eventToDelete != null)
             {
+
+                // Delete notifications linked to this event
+                var notifs = _repositoryWrapper.NotificationRepository.FindByCondition(n => n.RelatedEventId == id).ToList();
+
+                foreach(var notif in notifs)
+                {
+                    _repositoryWrapper.NotificationRepository.Delete(notif);
+                }
+
+                // Delete reviews linked to this event
+                var reviews = _repositoryWrapper.ReviewRepository.FindByCondition(r => r.EventId == id).ToList();
+
+                foreach (var review in reviews)
+                {
+                    _repositoryWrapper.ReviewRepository.Delete(review);
+                }
+
+                // Delete Registrations
+                var registrations = _repositoryWrapper.RegistrationRepository.FindByCondition(r => r.EventId == id).ToList();
+
+                foreach (var reg in registrations)
+                {
+                    _repositoryWrapper.RegistrationRepository.Delete(reg);
+                }
+
+                // Delete event
                 _repositoryWrapper.EventRepository.Delete(eventToDelete);
                 _repositoryWrapper.Save();
 
